@@ -1,0 +1,2 @@
+filetype:xls
+filetype:pdf
