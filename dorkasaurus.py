@@ -13,8 +13,8 @@ from selenium import webdriver
 from selenium.webdriver import ActionChains
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
-import mechanize
-import urllib
+# import mechanize
+import urllib.request, urllib.parse, urllib.error
 from bs4 import BeautifulSoup
 import re
 from time import sleep
@@ -26,7 +26,7 @@ import sys
 client = MongoClient('mongodb://127.0.0.1:27017')
 db = client.search_engine_scraper  # db name
 cursor = db.search_results  # collection name
-mongod_path = 'C:\Users\PK\Desktop\VM_Shared_Folder\mongodata'
+# mongod_path = 'C:\\Users\PK\Desktop\VM_Shared_Folder\mongodata'
 
 # this string shows up on the last page of results
 regex_string = re.compile(
@@ -39,8 +39,11 @@ regex_string = re.compile(
 
 binary = r'C:\Program Files (x86)\Mozilla Firefox\firefox.exe'  # selenium browser driver bin location
 fp = webdriver.FirefoxProfile()  # firefox profile
-driver = webdriver.Firefox(firefox_binary=binary, firefox_profile=fp,
-                           executable_path=r'C:\Users\PK\Desktop\VM_Shared_Folder\01Jan\instagram\geckodriver.exe')
+driver = webdriver.Firefox()
+
+
+# driver = webdriver.Firefox(firefox_binary=binary, firefox_profile=fp,
+#                            executable_path=r'C:\Users\PK\Desktop\VM_Shared_Folder\01Jan\instagram\geckodriver.exe')
 
 # open browser in a non google property
 random_start_url = ['https://twitter.com', 'http://yahoo.com', 'http://facebook.com']
@@ -65,7 +68,7 @@ with open(r'C:\Users\PK\Desktop\VM_Shared_Folder\01Jan\dorkasaurus\domain_list.t
 
 # search term, url encoded, now ready to append to base_url
 raw_search_term = "site:directv.com filetype:pdf"
-search_term = urllib.quote_plus(raw_search_term)
+search_term = urllib.parse.quote_plus(raw_search_term)
 hundred_results = '&num=100'  # add to end of search request
 page_increment = 100  # helps move to next page, if below try/except works we set this to 100
 
@@ -108,27 +111,27 @@ while not regex_match:  # keep running until we see the regex match = True
                         'scraped_link': link,
                         'scraped': 0}
             newList.append(linkDict)
-            print link
+            print(link)
 
             result_number += 1
         except:
             continue
 
-    print 'Page: ', str(page)  # for logging, page we're on
-    print str(result_number), 'results:'  # for logging, # of results
+    print('Page: ', str(page))  # for logging, page we're on
+    print(str(result_number), 'results:')  # for logging, # of results
 
-    print 'newList pre: ', newList  # just to see, what we're inserting into db from this search result page
-    print
+    print('newList pre: ', newList)  # just to see, what we're inserting into db from this search result page
+    print()
     posts = cursor.insert_many(newList)  # insert into db
     newList = []  # re-initialize an empty list ready for next search page's results
     returned_url = driver.current_url
-    print 'returned url: ', returned_url
+    print('returned url: ', returned_url)
 
     regex_search = re.findall(regex_string,
                               html)  # search html source for 'we limited results' string. indicates last page
     if regex_search:
         regex_match = True  # if we find that string we set the loop to True, so it will stop
-        print 'Found Most relevant Results text, shutting down'
+        print('Found Most relevant Results text, shutting down')
 
     start_results_at += page_increment  # preparing to append this to search string to GET the next N results. needs to be tied to
     # whether we set results to 100 or 10
@@ -137,5 +140,5 @@ while not regex_match:  # keep running until we see the regex match = True
     page += 1  # for logging, let's us know what page of results we're on
 
     sleep_time = random.randint(20, 60)  # sleep to be kind to Google
-    print 'Sleeping ' + str(sleep_time) + ' seconds'
+    print('Sleeping ' + str(sleep_time) + ' seconds')
     sleep(sleep_time)
